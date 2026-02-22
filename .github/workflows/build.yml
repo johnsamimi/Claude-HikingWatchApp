@@ -56,7 +56,14 @@ jobs:
 
       # ── 6. Build Debug APK ──────────────────────────────────────────────
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace 2>&1
+        run: |
+          ./gradlew assembleDebug --stacktrace 2>&1 | tee build_output.txt
+          # Print only error lines so they're easy to find
+          echo "========== ERRORS ONLY =========="
+          grep -E "^e:|error:|Error:|FAILED|Unresolved reference|cannot find symbol|None of the following" build_output.txt || true
+          echo "=================================="
+          # Fail if gradle failed
+          grep -q "BUILD SUCCESSFUL" build_output.txt || exit 1
 
       # ── 7. Upload Debug APK ─────────────────────────────────────────────
       - name: Upload Debug APK
