@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:   # allows you to trigger it manually from GitHub website
+  workflow_dispatch:
 
 jobs:
   build:
@@ -24,17 +24,26 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
       # ── 3. Set up Android SDK ───────────────────────────────────────────
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      # ── 4. Grant Gradle execute permission ─────────────────────────────
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
+      # ── 4. Install Gradle 8.6 via SDKMAN and generate wrapper ──────────
+      #    This step creates gradlew and gradle-wrapper.jar from scratch
+      #    so the repo does NOT need to contain those files.
+      - name: Install Gradle and generate Gradle Wrapper
+        run: |
+          curl -s "https://get.sdkman.io" | bash
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
+          sdk install gradle 8.6
+          sdk use gradle 8.6
+          gradle wrapper --gradle-version 8.6 --distribution-type bin
+          chmod +x ./gradlew
+          echo "✅ gradlew generated successfully"
+          ls -lh gradlew gradle/wrapper/
 
-      # ── 5. Cache Gradle dependencies (speeds up future builds) ─────────
+      # ── 5. Cache Gradle dependencies ────────────────────────────────────
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
@@ -49,7 +58,7 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
 
-      # ── 7. Upload Debug APK as downloadable artifact ────────────────────
+      # ── 7. Upload Debug APK ─────────────────────────────────────────────
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
@@ -61,7 +70,7 @@ jobs:
       - name: Build Release APK (unsigned)
         run: ./gradlew assembleRelease --stacktrace
 
-      # ── 9. Upload Release APK as downloadable artifact ─────────────────
+      # ── 9. Upload Release APK ──────────────────────────────────────────
       - name: Upload Release APK (unsigned)
         uses: actions/upload-artifact@v4
         with:
@@ -69,6 +78,6 @@ jobs:
           path: app/build/outputs/apk/release/*.apk
           retention-days: 30
 
-      # ── 10. Show build summary ──────────────────────────────────────────
+      # ── 10. Show generated APK files ────────────────────────────────────
       - name: List generated APK files
         run: find app/build/outputs/apk -name "*.apk" -exec ls -lh {} \;
