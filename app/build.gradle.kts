@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.arcowebdesign.hikingwatch"
-    compileSdk = 34   // AGP 8.3.2 is tested up to 34
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.arcowebdesign.hikingwatch"
@@ -22,23 +22,16 @@ android {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
-        debug {
-            isDebuggable = true
-        }
+        debug { isDebuggable = true }
     }
 
     buildFeatures { compose = true }
-
-    composeOptions {
-        // Must match Kotlin 1.9.23
-        kotlinCompilerExtensionVersion = "1.5.13"
-    }
+    composeOptions { kotlinCompilerExtensionVersion = "1.5.13" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
     kotlinOptions { jvmTarget = "17" }
 
     packaging {
@@ -50,12 +43,12 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.activity.compose)
 
-    // Compose BOM
-    implementation(platform(libs.compose.bom))
-    implementation(libs.compose.ui)
-    debugImplementation(libs.compose.tooling)
+    // Compose — pinned to versions compatible with Kotlin 1.9.23
+    implementation("androidx.compose.ui:ui:1.6.8")
+    implementation("androidx.compose.foundation:foundation:1.6.8")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
 
-    // Wear OS Compose 1.2.1 — compatible with compileSdk 34
+    // Wear OS Compose — 1.2.1 is the last version with minCompileSdk=34
     implementation("androidx.wear.compose:compose-material:1.2.1")
     implementation("androidx.wear.compose:compose-foundation:1.2.1")
     implementation("androidx.wear.compose:compose-navigation:1.2.1")
@@ -68,13 +61,13 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
-    // DataStore
+    // DataStore — 1.0.0 has no minCompileSdk requirement
     implementation(libs.datastore.preferences)
 
     // Location
     implementation(libs.play.services.location)
 
-    // Hilt
+    // Hilt — 1.0.0 is safe with compileSdk 34
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.work)
@@ -85,12 +78,12 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.coroutines.play.services)
 
-    // Lifecycle
+    // Lifecycle — 2.6.2 safe with compileSdk 34
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.runtime)
     implementation(libs.lifecycle.compose)
 
-    // WorkManager
+    // WorkManager — 2.8.1 is safe with compileSdk 34
     implementation(libs.workmanager.ktx)
 
     // Permissions
