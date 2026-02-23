@@ -29,16 +29,18 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      # ── 4. Install Gradle 8.6 + generate wrapper ─────────────────────
+      # ── 4. Install Gradle 8.11.1 + generate wrapper ──────────────────
+      #    AGP 8.7.x requires Gradle 8.9+. We use 8.11.1 (latest stable).
       - name: Install Gradle and generate wrapper
         run: |
           curl -s "https://get.sdkman.io" | bash
           source "$HOME/.sdkman/bin/sdkman-init.sh"
-          sdk install gradle 8.6
-          sdk use gradle 8.6
-          gradle wrapper --gradle-version 8.6 --distribution-type bin
+          sdk install gradle 8.11.1
+          sdk use gradle 8.11.1
+          gradle wrapper --gradle-version 8.11.1 --distribution-type bin
           chmod +x ./gradlew
-          echo "✅ gradlew ready"
+          echo "Gradle version:"
+          ./gradlew --version
 
       # ── 5. Cache Gradle ──────────────────────────────────────────────
       - name: Cache Gradle
@@ -55,12 +57,9 @@ jobs:
         run: |
           ./gradlew assembleDebug --stacktrace 2>&1 | tee build_log.txt
           echo ""
-          echo "====== KEY ERRORS (e: lines) ======"
-          grep "^e: " build_log.txt || true
-          echo ""
-          echo "====== FAILURE LINES ======"
-          grep -A 5 "FAILED\|error:\|Unresolved\|None of the following\|minSdk\|compileSdk\|minCompileSdk" build_log.txt | head -60 || true
-          echo "==================================="
+          echo "====== KEY ERRORS ======"
+          grep -E "^e: |error:|FAILED|Unresolved|minSdk|compileSdk|minCompileSdk" build_log.txt | head -40 || true
+          echo "========================"
           grep -q "BUILD SUCCESSFUL" build_log.txt || exit 1
 
       # ── 7. Upload Debug APK ──────────────────────────────────────────
