@@ -7,19 +7,19 @@ plugins {
 
 android {
     namespace = "com.arcowebdesign.hikingwatch"
-    compileSdk = 35
+    compileSdk = 34   // AGP 8.3.2 is tested up to 34
 
     defaultConfig {
         applicationId = "com.arcowebdesign.hikingwatch"
         minSdk = 30
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false   // disabled for now to avoid R8 issues
+            isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
@@ -30,6 +30,7 @@ android {
     buildFeatures { compose = true }
 
     composeOptions {
+        // Must match Kotlin 1.9.23
         kotlinCompilerExtensionVersion = "1.5.13"
     }
 
@@ -41,43 +42,39 @@ android {
     kotlinOptions { jvmTarget = "17" }
 
     packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
+        resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     }
 }
 
 dependencies {
-    val wearComposeVersion = "1.3.1"
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.activity.compose)
 
-    // Compose BOM - manages versions of all compose libraries
+    // Compose BOM
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     debugImplementation(libs.compose.tooling)
 
-    // Wear OS Compose
-    implementation("androidx.wear.compose:compose-material:$wearComposeVersion")
-    implementation("androidx.wear.compose:compose-foundation:$wearComposeVersion")
-    implementation("androidx.wear.compose:compose-navigation:$wearComposeVersion")
+    // Wear OS Compose 1.2.1 — compatible with compileSdk 34
+    implementation("androidx.wear.compose:compose-material:1.2.1")
+    implementation("androidx.wear.compose:compose-foundation:1.2.1")
+    implementation("androidx.wear.compose:compose-navigation:1.2.1")
 
-    // OSMDroid for offline maps
+    // Maps
     implementation(libs.osmdroid.android)
 
-    // Room database
+    // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
-    // DataStore preferences
+    // DataStore
     implementation(libs.datastore.preferences)
 
-    // Fused Location Provider
+    // Location
     implementation(libs.play.services.location)
 
-    // Hilt dependency injection
+    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.work)
@@ -96,6 +93,6 @@ dependencies {
     // WorkManager
     implementation(libs.workmanager.ktx)
 
-    // Runtime permissions
+    // Permissions
     implementation(libs.accompanist.permissions)
 }

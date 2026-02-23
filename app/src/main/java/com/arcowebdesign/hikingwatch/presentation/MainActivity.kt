@@ -11,15 +11,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.material.*
-import androidx.wear.compose.foundation.pager.HorizontalPager
-import androidx.wear.compose.foundation.pager.rememberPagerState
+import dagger.hilt.android.AndroidEntryPoint
 import com.arcowebdesign.hikingwatch.presentation.map.MapScreen
 import com.arcowebdesign.hikingwatch.presentation.stats.StatsScreen
 import com.arcowebdesign.hikingwatch.presentation.summary.SummaryScreen
 import com.arcowebdesign.hikingwatch.presentation.theme.*
-import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -29,13 +26,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
             HikingWatchTheme {
-                HikingApp(
-                    viewModel = viewModel,
-                    isAmbient = isAmbient
-                )
+                HikingApp(viewModel = viewModel, isAmbient = isAmbient)
             }
         }
     }
@@ -52,12 +45,9 @@ fun HikingApp(viewModel: HikingViewModel, isAmbient: Boolean) {
     var permissionsGranted by remember { mutableStateOf(false) }
 
     when {
-        // Permissions gate
         !permissionsGranted -> {
             PermissionsScreen(onPermissionsGranted = { permissionsGranted = true })
         }
-
-        // Session complete — show summary
         trackingState is TrackingState.Completed -> {
             val sessionId = (trackingState as TrackingState.Completed).sessionId
             SummaryScreen(
@@ -66,28 +56,22 @@ fun HikingApp(viewModel: HikingViewModel, isAmbient: Boolean) {
                 onDone = { viewModel.resetToIdle() }
             )
         }
-
-        // Ambient mode — minimal low-power display
         isAmbient -> {
             AmbientScreen(viewModel = viewModel)
         }
-
-        // Main pager: Map (page 0) ↔ Stats (page 1)
         else -> {
-            val pagerState = rememberPagerState(pageCount = { 2 })
-            HorizontalPager(
-                state = pagerState,
+            // Simple SwipeToDismiss-based navigation for Wear Compose 1.2.1
+            var currentPage by remember { mutableStateOf(0) }
+            SwipeToDismissBox(
+                state = rememberSwipeToDismissBoxState(),
                 modifier = Modifier.fillMaxSize()
-            ) { page ->
-                when (page) {
-                    0 -> MapScreen(
-                        viewModel = viewModel,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    1 -> StatsScreen(
-                        viewModel = viewModel,
-                        modifier = Modifier.fillMaxSize()
-                    )
+            ) { isBackground ->
+                if (isBackground) {
+                    // Background page = Stats
+                    StatsScreen(viewModel = viewModel, modifier = Modifier.fillMaxSize())
+                } else {
+                    // Foreground page = Map
+                    MapScreen(viewModel = viewModel, modifier = Modifier.fillMaxSize())
                 }
             }
         }
@@ -98,11 +82,8 @@ fun HikingApp(viewModel: HikingViewModel, isAmbient: Boolean) {
 private fun AmbientScreen(viewModel: HikingViewModel) {
     val stats by viewModel.stats.collectAsState()
     val settings by viewModel.settings.collectAsState()
-
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black),
+        modifier = Modifier.fillMaxSize().background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -117,11 +98,7 @@ private fun AmbientScreen(viewModel: HikingViewModel) {
                 fontSize = 14.sp
             )
             if (stats.heartRateBpm > 0) {
-                Text(
-                    text = "♥ ${stats.heartRateBpm}",
-                    color = Color.Gray,
-                    fontSize = 12.sp
-                )
+                Text(text = "♥ ${stats.heartRateBpm}", color = Color.Gray, fontSize = 12.sp)
             }
         }
     }
