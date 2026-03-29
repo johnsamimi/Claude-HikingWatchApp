@@ -1,2 +1,0 @@
--keep class org.osmdroid.** { *; }
--keep class com.arcowebdesign.** { *; }
