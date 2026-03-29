@@ -9,6 +9,8 @@ import javax.inject.Inject
 @HiltAndroidApp
 class HikingApp : Application(), Configuration.Provider {
     @Inject lateinit var workerFactory: HiltWorkerFactory
-    override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
+
+    // WorkManager 2.8.x uses a function, not a property
+    override fun getWorkManagerConfiguration(): Configuration =
+        Configuration.Builder().setWorkerFactory(workerFactory).build()
 }
